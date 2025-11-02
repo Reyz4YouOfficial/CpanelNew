@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pterodactyl Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f7fafc;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+            color: white;
+            padding: 2rem 0;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-header p {
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 2rem;
+            color: #e2e8f0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(102, 126, 234, 0.1);
+            border-left-color: #667eea;
+            color: white;
+        }
+
+        .nav-link i {
+            margin-right: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        .header {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: #f7fafc;
+            border-radius: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            padding: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: #718096;
+            font-size: 0.95rem;
+        }
+
+        .section-content {
+            padding: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(229, 62, 62, 0.3);
+        }
+
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .item-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f7fafc;
+        }
+
+        .list-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            transition: background 0.3s ease;
+        }
+
+        .list-item:hover {
+            background: #f7fafc;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info h4 {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .item-info p {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .message {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .message.success {
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
+            color: #22543d;
+            border: 1px solid #68d391;
+        }
+
+        .message.error {
+            background: linear-gradient(135deg, #fed7d7, #feb2b2);
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: #2d3748;
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+            
+            .header {
+                padding: 1rem;
+                margin-top: 3rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1001;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <button id="logoutBtn" class="btn btn-danger logout-btn">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+    </button>
+
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-rocket"></i> Panel Control</h2>
+            <p id="welcomeUser">Welcome back</p>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-section="servers">
+                    <i class="fas fa-server"></i>
+                    Server Management
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-section="admins">
+                    <i class="fas fa-users-cog"></i>
+                    Admin Management
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-section="create">
+                    <i class="fas fa-plus"></i>
+                    Create Resources
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-section="bulk">
+                    <i class="fas fa-trash"></i>
+                    Bulk Operations
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <header class="header">
+            <h1><i class="fas fa-chart-line"></i> Control Dashboard</h1>
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <span id="currentUser">Admin</span>
+                </div>
+            </div>
+        </header>
+
+        <div id="globalMessage" class="hidden"></div>
+
+        <section id="dashboard-section" class="content-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-power-off"></i>
+                    </div>
+                    <span id="activeServers" class="stat-number">0</span>
+                    <span class="stat-label">Active Servers</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <span id="totalServers" class="stat-number">0</span>
+                    <span class="stat-label">Total Servers</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <span id="totalAdmins" class="stat-number">0</span>
+                    <span class="stat-label">Total Admins</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <span id="uptime" class="stat-number">24h</span>
+                    <span class="stat-label">System Uptime</span>
+                </div>
+            </div>
+
+            <div class="content-section active">
+                <div class="section-header">
+                    <h2 class="section-title">Quick Actions</h2>
+                    <p class="section-subtitle">Most used actions for quick access</p>
+                </div>
+                <div class="section-content">
+                    <div class="form-grid">
+                        <button class="btn btn-primary" onclick="showSection('create')">
+                            <i class="fas fa-plus"></i>
+                            Create New Server
+                        </button>
+                        <button class="btn btn-primary" onclick="showSection('admins')">
+                            <i class="fas fa-user-plus"></i>
+                            Add Admin
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshAllData()">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh Data
+                        </button>
+                        <button class="btn btn-secondary" onclick="showSection('servers')">
+                            <i class="fas fa-list"></i>
+                            View All Servers
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="servers-section" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">Server Management</h2>
+                <p class="section-subtitle">Manage and monitor all your servers</p>
+            </div>
+            <div class="section-content">
+                <div style="margin-bottom: 1.5rem;">
+                    <button class="btn btn-primary" onclick="loadServerList()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Servers
+                    </button>
+                </div>
+                <div id="serverList" class="item-list">
+                    <div style="padding: 2rem; text-align: center; color: #718096;">
+                        <i class="fas fa-server" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>Click refresh to load servers</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="admins-section" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">Admin Management</h2>
+                <p class="section-subtitle">Manage admin users and permissions</p>
+            </div>
+            <div class="section-content">
+                <div style="margin-bottom: 1.5rem;">
+                    <button class="btn btn-primary" onclick="loadAdminList()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Admins
+                    </button>
+                </div>
+                <div id="adminList" class="item-list">
+                    <div style="padding: 2rem; text-align: center; color: #718096;">
+                        <i class="fas fa-users-cog" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>Click refresh to load admins</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="create-section" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">Create Resources</h2>
+                <p class="section-subtitle">Create new servers and admin accounts</p>
+            </div>
+            <div class="section-content">
+                <div class="form-grid">
+                    <div>
+                        <h3 style="margin-bottom: 1.5rem; color: #2d3748;"><i class="fas fa-server"></i> Create Server</h3>
+                        <form id="createServerForm">
+                            <div class="form-group">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-input" id="serverUsername" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-input" id="serverEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">RAM (MB) - 0 = Unlimited</label>
+                                <input type="number" class="form-input" id="serverRam" min="0" value="1000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Disk (MB) - 0 = Unlimited</label>
+                                <input type="number" class="form-input" id="serverDisk" min="0" value="1000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">CPU (%) - 0 = Unlimited</label>
+                                <input type="number" class="form-input" id="serverCpu" min="0" max="500" value="100">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Telegram ID (Optional)</label>
+                                <input type="text" class="form-input" id="telegramId">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Create Server
+                            </button>
+                        </form>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom: 1.5rem; color: #2d3748;"><i class="fas fa-user-shield"></i> Create Admin</h3>
+                        <form id="createAdminForm">
+                            <div class="form-group">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-input" id="adminUsername" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-input" id="adminEmail" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-plus"></i>
+                                Create Admin
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="bulk-section" class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">Bulk Operations</h2>
+                <p class="section-subtitle">Perform bulk actions on servers and users</p>
+            </div>
+            <div class="section-content">
+                <div class="form-grid">
+                    <div style="padding: 2rem; background: #fed7d7; border-radius: 12px; border: 1px solid #fc8181;">
+                        <h3 style="color: #742a2a; margin-bottom: 1rem;"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+                        <p style="color: #742a2a; margin-bottom: 1.5rem;">These actions cannot be undone. Please proceed with caution.</p>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="btn btn-danger" onclick="deleteAllServers()">
+                                <i class="fas fa-server"></i>
+                                Delete All Servers
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteAllUsers()">
+                                <i class="fas fa-users"></i>
+                                Delete All Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let authData = null;
+
+        function checkAuth() {
+            const savedAuth = localStorage.getItem('authData');
+            if (!savedAuth) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            authData = JSON.parse(savedAuth);
+            document.getElementById('currentUser').textContent = authData.username;
+            document.getElementById('userAvatar').textContent = authData.username.charAt(0).toUpperCase();
+            document.getElementById('welcomeUser').textContent = `Welcome back, ${authData.username}`;
+            return true;
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            document.getElementById(`${sectionName}-section`).classList.add('active');
+            document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = link.getAttribute('data-section');
+                showSection(section);
+            });
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('authData');
+            window.location.href = 'login.html';
+        });
+
+        async function loadDashboardData() {
+            try {
+                const [serverStatus, servers, admins] = await Promise.all([
+                    fetch('/api/server-status').then(r => r.json()),
+                    fetch('/api/servers').then(r => r.json()),
+                    fetch('/api/admins').then(r => r.json())
+                ]);
+
+                document.getElementById('activeServers').textContent = serverStatus.activeServers || 0;
+                document.getElementById('totalServers').textContent = Array.isArray(servers) ? servers.length : 0;
+                document.getElementById('totalAdmins').textContent = Array.isArray(admins) ? admins.length : 0;
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                showMessage('Failed to load dashboard data', 'error');
+            }
+        }
+
+        async function loadServerList() {
+            try {
+                const response = await fetch('/api/servers');
+                const servers = await response.json();
+                const serverList = document.getElementById('serverList');
+                
+                if (!Array.isArray(servers) || servers.length === 0) {
+                    serverList.innerHTML = `
+                        <div style="padding: 2rem; text-align: center; color: #718096;">
+                            <i class="fas fa-server" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                            <p>No servers found</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                serverList.innerHTML = servers.map(server => `
+                    <div class="list-item">
+                        <div class="item-info">
+                            <h4><i class="fas fa-server"></i> ${server.name}</h4>
+                            <p>ID: ${server.id} | RAM: ${server.limits?.memory || 'Unknown'}MB | User: ${server.username || 'Unknown'}</p>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-danger" onclick="deleteServer(${server.id})">
+                                <i class="fas fa-trash"></i>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('serverList').innerHTML = `
+                    <div style="padding: 2rem; text-align: center; color: #e53e3e;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>Failed to load servers</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadAdminList() {
+            try {
+                const response = await fetch('/api/admins');
+                const admins = await response.json();
+                const adminList = document.getElementById('adminList');
+                
+                if (!Array.isArray(admins) || admins.length === 0) {
+                    adminList.innerHTML = `
+                        <div style="padding: 2rem; text-align: center; color: #718096;">
+                            <i class="fas fa-users-cog" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                            <p>No admins found</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                adminList.innerHTML = admins.map(admin => `
+                    <div class="list-item">
+                        <div class="item-info">
+                            <h4><i class="fas fa-user-shield"></i> ${admin.username}</h4>
+                            <p>ID: ${admin.id}</p>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-danger" onclick="deleteAdmin(${admin.id})">
+                                <i class="fas fa-trash"></i>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('adminList').innerHTML = `
+                    <div style="padding: 2rem; text-align: center; color: #e53e3e;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>Failed to load admins</p>
+                    </div>
+                `;
+            }
+        }
+
+        document.getElementById('createServerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                username: document.getElementById('serverUsername').value,
+                email: document.getElementById('serverEmail').value,
+                ram: parseInt(document.getElementById('serverRam').value) || 0,
+                disk: parseInt(document.getElementById('serverDisk').value) || 0,
+                cpu: parseInt(document.getElementById('serverCpu').value) || 0,
+                telegramId: document.getElementById('telegramId').value
+            };
+
+            if (formData.ram === 0) formData.ram = 99999;
+            if (formData.disk === 0) formData.disk = 99999;
+            if (formData.cpu === 0) formData.cpu = 500;
+
+            try {
+                const response = await fetch('/api/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (result.error) {
+                    showMessage(result.error, 'error');
+                } else {
+                    showMessage(`Server created! Username: ${result.username}, Password: ${result.password}`, 'success');
+                    document.getElementById('createServerForm').reset();
+                    loadDashboardData();
+                }
+            } catch (error) {
+                showMessage('Failed to create server: ' + error.message, 'error');
+            }
+        });
+
+        document.getElementById('createAdminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                username: document.getElementById('adminUsername').value,
+                email: document.getElementById('adminEmail').value
+            };
+
+            try {
+                const response = await fetch('/api/create-admin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (result.error) {
+                    showMessage(result.error, 'error');
+                } else {
+                    showMessage(`Admin created! Username: ${result.username}, Password: ${result.password}`, 'success');
+                    document.getElementById('createAdminForm').reset();
+                    loadDashboardData();
+                }
+            } catch (error) {
+                showMessage('Failed to create admin: ' + error.message, 'error');
+            }
+        });
+
+        async function deleteServer(id) {
+            if (confirm('Are you sure you want to delete this server?')) {
+                try {
+                    await fetch(`/api/server/${id}`, { method: 'DELETE' });
+                    showMessage('Server deleted successfully', 'success');
+                    loadServerList();
+                    loadDashboardData();
+                } catch (error) {
+                    showMessage('Failed to delete server: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function deleteAdmin(id) {
+            if (confirm('Are you sure you want to delete this admin?')) {
+                try {
+                    await fetch(`/api/admin/${id}`, { method: 'DELETE' });
+                    showMessage('Admin deleted successfully', 'success');
+                    loadAdminList();
+                    loadDashboardData();
+                } catch (error) {
+                    showMessage('Failed to delete admin: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function deleteAllServers() {
+            if (confirm('⚠️ WARNING: This will delete ALL servers. Are you absolutely sure?')) {
+                try {
+                    const response = await fetch('/api/delete-all-servers', { method: 'POST' });
+                    const result = await response.json();
+                    showMessage(`Deleted ${result.deletedCount} servers`, 'success');
+                    loadServerList();
+                    loadDashboardData();
+                } catch (error) {
+                    showMessage('Failed to delete servers: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function deleteAllUsers() {
+            if (confirm('⚠️ WARNING: This will delete ALL users (except admin). Are you absolutely sure?')) {
+                try {
+                    const response = await fetch('/api/delete-all-users', { method: 'POST' });
+                    const result = await response.json();
+                    showMessage(`Deleted ${result.deletedCount} users`, 'success');
+                    loadDashboardData();
+                } catch (error) {
+                    showMessage('Failed to delete users: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function refreshAllData() {
+            loadDashboardData();
+            loadServerList();
+            loadAdminList();
+            showMessage('Data refreshed successfully', 'success');
+        }
+
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.getElementById('globalMessage');
+            messageDiv.innerHTML = `
+                <div class="message ${type}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                    ${message}
+                </div>
+            `;
+            messageDiv.classList.remove('hidden');
+            setTimeout(() => messageDiv.classList.add('hidden'), 5000);
+        }
+
+        if (checkAuth()) {
+            loadDashboardData();
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            const uptime = `${now.getHours()}h ${now.getMinutes()}m`;
+            document.getElementById('uptime').textContent = uptime;
+        }, 60000);
+    </script>
+</body>
+</html>
